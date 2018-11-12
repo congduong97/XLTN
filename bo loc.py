@@ -17,10 +17,17 @@ spf.setpos(9000)    # vi tri khung du lieu
 signal = spf.readframes(512)
 signal = np.fromstring(signal, 'Int16')
 
-# data = signal
+# data_frame = signal
+
 
 class SampleWaveFFT:
+
     def __init__(self):
+        self.K = 150
+        self.N = 300
+        self.DB = 35
+        self.DE = 100
+        # self.r
         self.nfft = 512
         # Sampling Frequency
         self.rate = spf.getframerate()
@@ -82,12 +89,35 @@ class SampleWaveFFT:
         plt.grid(color='w')
         plt.xlabel('Frequency in Hz')
         plt.ylabel('Magnitude in  dB')
+
         plt.show()
 
+    def _caculate_autocrrelation(self, data):
+
+        self.r = np.zeros(self.K)
+        self.IR = 0
+
+        for k in range(0, self.K - 1):
+            self.r[k] = sum(data[n] * float(data[n + k]) for n in range(0, self.N - k - 1))
+        maxr = self.r[self.DB]
+        for m in range(self.DB, self.DE - 1):
+            if self.r[m] > maxr:
+                maxr = self.r[m]
+                self.IR = m
+
+        print(maxr)
+        plt.subplot(411)
+        plt.plot(self.r)
 
 
 if __name__ == "__main__":
+
     specsin = SampleWaveFFT()
     creates = specsin.create_signal()
     drawsin = specsin.plot_signal()
+
+    specsin._caculate_autocrrelation(signal)
+
     plotspec = specsin.plot_spectrum()
+
+
